@@ -1,0 +1,74 @@
+groups:
+  - name: infrastructure
+    rules:
+
+      - alert: PrometheusTargetDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Prometheus target is down"
+          description: "{{ $labels.job }} / {{ $labels.instance }} has been unreachable for more than 2 minutes."
+
+      - alert: HostFilesystem80Percent
+        expr: |
+          100 * (
+            1 -
+            node_filesystem_avail_bytes{
+              fstype!~"tmpfs|overlay|squashfs"
+            }
+            /
+            node_filesystem_size_bytes{
+              fstype!~"tmpfs|overlay|squashfs"
+            }
+          ) > 80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Filesystem usage above 80%"
+          description: "{{ $labels.instance }} mount {{ $labels.mountpoint }} has exceeded 80% usage."
+
+      - alert: HostFilesystem90Percent
+        expr: |
+          100 * (
+            1 -
+            node_filesystem_avail_bytes{
+              fstype!~"tmpfs|overlay|squashfs"
+            }
+            /
+            node_filesystem_size_bytes{
+              fstype!~"tmpfs|overlay|squashfs"
+            }
+          ) > 90
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Filesystem usage above 90%"
+          description: "{{ $labels.instance }} mount {{ $labels.mountpoint }} has exceeded 90% usage."
+
+      - alert: LowAvailableMemory
+        expr: |
+          (
+            node_memory_MemAvailable_bytes
+            /
+            node_memory_MemTotal_bytes
+          ) < 0.10
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low available memory"
+          description: "{{ $labels.instance }} has less than 10% available RAM."
+
+      - alert: ProxmoxGuestDown
+        expr: |
+          pve_up{id=~"(qemu|lxc)/.*"} == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Proxmox guest is down"
+          description: "{{ $labels.id }} on {{ $labels.instance }} is not running."

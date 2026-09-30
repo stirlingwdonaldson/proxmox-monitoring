@@ -1,0 +1,5 @@
+pve-exporter/pve.yml
+.env
+secrets/
+*.key
+*.pem
